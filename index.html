@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Diário nutricional, composição corporal, metas e relatórios inteligentes." />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
   <title>BodyMetrics</title>
   <style>
     :root{--bg:#070a12;--panel:#101521;--panel2:#151c2b;--line:#25304a;--text:#eef3ff;--muted:#94a0ba;--accent:#7c9cff;--accent2:#6ee7c8;--danger:#ff7b8b;--warn:#ffc66d;--ok:#55d6a8;--shadow:0 18px 45px rgba(0,0,0,.28)}
@@ -24,24 +24,57 @@
     .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{aspect-ratio:1;border-radius:12px;background:#121929;border:1px solid #202a40;display:grid;place-items:center;font-size:12px;position:relative}.day.has{border-color:#41547d}.day.ok:after,.day.warn:after,.day.bad:after{content:"";width:6px;height:6px;border-radius:50%;position:absolute;bottom:6px}.day.ok:after{background:var(--ok)}.day.warn:after{background:var(--warn)}.day.bad:after{background:var(--danger)}
     .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 12px}.swipe-hint{font-size:11px;color:var(--muted);text-align:center;margin:-5px 0 12px;user-select:none}.view.swiping{transition:transform .14s ease,opacity .14s ease}.section-title h2{margin:0;font-size:20px}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{background:#0d1422;border:1px solid #202a40;border-radius:14px;padding:12px}.kpi .v{font-size:21px;font-weight:800}.kpi .l{font-size:11px;color:var(--muted);margin-top:3px}
     @media(max-width:760px){.hero,.grid.two,.grid.three{grid-template-columns:1fr}.fields{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.topbar{align-items:flex-start}.install{padding:8px 10px}.card{padding:14px}.app{padding-top:14px}}
+
+    .logo-img{object-fit:cover;padding:0;background:#0a101f;border:1px solid #2b3858}
+    .weekly-hero{display:grid;grid-template-columns:1.45fr .75fr;gap:14px}
+    .weekly-main{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+    .weekly-ring{width:128px;height:128px;flex:none}
+    .week-balance{font-size:34px;font-weight:900;letter-spacing:-1px;margin:4px 0}
+    .week-balance.deficit{color:var(--ok)}.week-balance.surplus{color:var(--danger)}
+    .weekly-strip{display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:8px;overflow-x:auto;padding:4px 1px 8px;scrollbar-width:none}
+    .weekly-strip::-webkit-scrollbar{display:none}
+    .week-day{min-width:72px;background:#0c1322;border:1px solid #273451;border-radius:16px;padding:10px 7px;text-align:center;color:var(--text)}
+    .week-day.today{border-color:var(--accent);box-shadow:0 0 0 1px rgba(124,156,255,.25) inset}
+    .week-day .dow{font-size:11px;color:#b5c0d8;text-transform:uppercase}.week-day .num{font-size:20px;font-weight:800;margin:4px 0 8px}
+    .week-day .dot{width:24px;height:24px;border-radius:50%;margin:auto;display:grid;place-items:center;border:2px solid #46526a;color:#9aa7c1;font-size:13px}
+    .week-day.valid.deficit .dot{border-color:var(--ok);color:var(--ok)}.week-day.valid.surplus .dot{border-color:var(--danger);color:var(--danger)}
+    .week-day .balance{font-size:11px;margin-top:7px;white-space:nowrap}.week-day.deficit .balance{color:var(--ok)}.week-day.surplus .balance{color:var(--danger)}
+    .dashboard-lower{display:grid;grid-template-columns:1fr 1.15fr;gap:14px;margin-top:14px}
+    .daily-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.daily-mini{padding:10px;background:#0b1220;border-radius:12px;border:1px solid #202c45}.daily-mini b{display:block;font-size:16px;margin-top:3px}
+    .recent-list .recent-row{display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:8px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:center}.recent-list .recent-row:last-child{border-bottom:0}.recent-head{font-size:11px;color:var(--muted)}
+    .saldo-deficit{color:var(--ok);font-weight:800}.saldo-surplus{color:var(--danger);font-weight:800}
+    .calendar{gap:8px}.day{color:#eef3ff;background:#151e30;border-color:#354564;font-weight:750;font-size:14px}.day:hover,.day:focus{background:#202d45;border-color:#6f8eea}.day.selected{outline:2px solid var(--accent);background:#253352}.day:not(.has){color:#b8c4da;background:#101827}.day.has{background:#172338;border-color:#536a9a}
+    .day.ok:after,.day.warn:after,.day.bad:after{width:8px;height:8px;box-shadow:0 0 8px currentColor}
+    @media(max-width:760px){.weekly-hero,.dashboard-lower{grid-template-columns:1fr}.weekly-main{grid-template-columns:auto 1fr;gap:14px}.weekly-ring{width:104px;height:104px}.week-balance{font-size:27px}.weekly-strip{margin-right:-14px}.daily-mini-grid{grid-template-columns:repeat(3,1fr)}.recent-list .recent-row{grid-template-columns:1.25fr .75fr .75fr .8fr;font-size:12px}}
   </style>
 </head>
 <body>
 <div class="app">
-  <header class="topbar"><div class="brand"><div class="logo">BM</div><div><h1>BodyMetrics</h1><div class="sub">Nutrição, corpo e inteligência de evolução</div></div></div><button id="installBtn" class="install">Instalar</button></header>
+  <header class="topbar"><div class="brand"><img class="logo logo-img" src="logo.png" alt="Logo BodyMetrics"><div><h1>BodyMetrics</h1><div class="sub">Nutrição, corpo e inteligência de evolução</div></div></div><button id="installBtn" class="install">Instalar</button></header>
 
   <main>
     <section id="dashboard" class="view active">
-      <div class="hero">
-        <div class="card"><div class="score"><div id="scoreRing" class="score-ring"><strong id="scoreValue">0</strong></div><div><div class="muted">Aderência do registro padrão</div><div class="big" id="todayStatus">Sem registro</div><div class="muted" id="todayDate"></div></div></div></div>
+      <div class="weekly-hero">
+        <div class="card weekly-main">
+          <div id="scoreRing" class="score-ring weekly-ring"><strong><span id="scoreValue">0</span><small style="font-size:14px">%</small></strong></div>
+          <div>
+            <div class="muted">Semana até agora</div>
+            <div id="weekBalanceLabel" class="week-balance">Sem dados</div>
+            <div id="weekAverage" class="muted">Preencha calorias consumidas e gastas</div>
+            <div id="weekCoverage" class="muted" style="margin-top:5px"></div>
+          </div>
+        </div>
         <div class="card"><h3>Resumo corporal</h3><div class="metric"><span>Peso atual</span><b id="dashWeight">—</b></div><div class="metric"><span>Cintura</span><b id="dashWaist">—</b></div><div class="metric"><span>Meta de peso</span><b id="dashGoalWeight">—</b></div></div>
       </div>
-      <div class="grid three" style="margin-top:14px">
-        <div class="card"><div class="muted">Calorias</div><div class="big" id="dashKcal">—</div><span id="dashKcalPill" class="pill">Sem meta</span></div>
-        <div class="card"><div class="muted">Proteína</div><div class="big" id="dashProtein">—</div><span id="dashProteinPill" class="pill">Sem meta</span></div>
-        <div class="card"><div class="muted">Água</div><div class="big" id="dashWater">—</div><span id="dashWaterPill" class="pill">Sem meta</span></div>
+      <div class="card" style="margin-top:14px">
+        <div class="section-title"><h2>Visão semanal <span class="muted" style="font-size:14px">(até ontem)</span></h2><span id="weekRegisterCount" class="pill">0 dias</span></div>
+        <div id="weeklyStrip" class="weekly-strip"></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:11px;color:var(--muted)"><span>● <b style="color:var(--ok)">Déficit</b></span><span>● <b style="color:var(--danger)">Superávit</b></span><span>○ Sem registro completo</span></div>
       </div>
-      <div class="card" style="margin-top:14px"><div class="chart-head"><h2>Evolução do peso</h2><span class="pill">Últimos registros</span></div><canvas id="dashChart" width="900" height="260"></canvas></div>
+      <div class="dashboard-lower">
+        <div class="card"><div class="section-title"><h2>Último dia registrado</h2><button class="btn secondary small" id="openLastDiary">Abrir</button></div><div id="lastDayCard" class="empty">Nenhum registro</div></div>
+        <div class="card"><div class="section-title"><h2>Últimos registros</h2><button class="btn secondary small" id="openDiaryTab">Ver todos</button></div><div id="recentDashboard" class="recent-list"></div></div>
+      </div>
       <div class="card" style="margin-top:14px"><h2>Inteligência rápida</h2><div id="quickInsights"></div></div>
     </section>
 
@@ -128,13 +161,34 @@ function statusClass(score){return score>=80?'ok':score>=60?'warn':'bad'}
 function setPill(el,text,cls){el.textContent=text;el.className='pill '+(cls||'')}
 function fill(prefix,obj,fields){fields.forEach(f=>$(prefix+f[0]).value=obj?.[f[1]]??'')}
 function renderAll(){renderDashboard();renderDiary();renderBody();renderGoals();renderCharts();renderReports()}
-function renderDashboard(){const ref=yesterday();const d=db.diary[ref];const score=diaryScore(d);$('scoreValue').textContent=score;$('scoreRing').style.setProperty('--p',score);$('todayStatus').textContent=d?(score>=80?'Muito bom':score>=60?'Ajustável':'Fora da meta'):'Sem registro';$('todayDate').textContent=parseDate(ref).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
- const bodies=Object.values(db.body).sort((a,b)=>a.date.localeCompare(b.date));const last=bodies.at(-1);$('dashWeight').textContent=last?.weight?fmt(last.weight)+' kg':'—';$('dashWaist').textContent=last?.waist?fmt(last.waist)+' cm':'—';$('dashGoalWeight').textContent=db.goals.weight?fmt(db.goals.weight)+' kg':'—';
- $('dashKcal').textContent=d?.kcal?fmt(d.kcal)+' kcal':'—';$('dashProtein').textContent=d?.protein?fmt(d.protein)+' g':'—';$('dashWater').textContent=d?.water?fmt(d.water)+' ml':'—';
- const compare=(v,t,unit,el)=>{if(!v||!t)return setPill(el,'Sem registro');const pct=v/t;setPill(el,(v-t>0?'+':'')+fmt(v-t)+' '+unit,pct>=.9&&pct<=1.1?'ok':pct>=.8&&pct<=1.2?'warn':'bad')};compare(+d?.kcal,+db.goals.kcal,'kcal',$('dashKcalPill'));compare(+d?.protein,+db.goals.protein,'g',$('dashProteinPill'));compare(+d?.water,+db.goals.water,'ml',$('dashWaterPill'));
- const recent=Object.values(db.diary).filter(x=>x.date>=daysAgo(6));const avg=recent.length?Math.round(recent.reduce((s,x)=>s+diaryScore(x),0)/recent.length):0;let insights=[];if(recent.length)insights.push(`<div class="insight">Sua aderência média nos últimos ${recent.length} dias foi de <b>${avg}%</b>.</div>`);if(last&&db.goals.weight)insights.push(`<div class="insight">Faltam <b>${fmt(Math.max(0,last.weight-db.goals.weight))} kg</b> para a meta de peso.</div>`);if(!insights.length)insights.push('<div class="empty">Registre alguns dias para receber análises.</div>');$('quickInsights').innerHTML=insights.join(''); drawLine($('dashChart'),bodies.map(x=>({date:x.date,value:+x.weight})),{goal:+db.goals.weight});}
+function weekDatesUntilYesterday(){
+ const now=new Date(); now.setHours(12,0,0,0); const yesterdayDate=new Date(now); yesterdayDate.setDate(yesterdayDate.getDate()-1);
+ const start=new Date(now); const dow=(start.getDay()+6)%7; start.setDate(start.getDate()-dow);
+ const dates=[]; for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+i);dates.push(d)}
+ return {dates,start,end:yesterdayDate};
+}
+function renderDashboard(){
+ const wk=weekDatesUntilYesterday(), endISO=localISO(wk.end), startISO=localISO(wk.start);
+ const eligible=wk.dates.filter(d=>localISO(d)<=endISO);
+ const registered=eligible.map(d=>db.diary[localISO(d)]).filter(Boolean);
+ const scored=registered.filter(x=>diaryScore(x)>0); const score=scored.length?Math.round(scored.reduce((s,x)=>s+diaryScore(x),0)/scored.length):0;
+ const valid=registered.filter(x=>(+x.kcal||0)>0&&(+x.burned||0)>0); const deficit=valid.reduce((s,x)=>s+(+x.burned)-(+x.kcal),0); const avg=valid.length?deficit/valid.length:0;
+ $('scoreValue').textContent=score; $('scoreRing').style.setProperty('--p',score);
+ const bal=$('weekBalanceLabel'); if(valid.length){bal.textContent=`${deficit>=0?'Déficit':'Superávit'} ${fmt(Math.abs(deficit))} kcal`;bal.className='week-balance '+(deficit>=0?'deficit':'surplus');$('weekAverage').textContent=`Média diária: ${avg>=0?'−':'+'}${fmt(Math.abs(avg))} kcal`;}else{bal.textContent='Sem dados completos';bal.className='week-balance';$('weekAverage').textContent='Informe consumidas e gastas';}
+ $('weekCoverage').textContent=`${registered.length} de ${eligible.length} dias registrados`; $('weekRegisterCount').textContent=`${registered.length}/${eligible.length} dias`;
+ const bodies=Object.values(db.body).sort((a,b)=>a.date.localeCompare(b.date)); const lastBody=bodies.at(-1); $('dashWeight').textContent=lastBody?.weight?fmt(lastBody.weight)+' kg':'—'; $('dashWaist').textContent=lastBody?.waist?fmt(lastBody.waist)+' cm':'—'; $('dashGoalWeight').textContent=db.goals.weight?fmt(db.goals.weight)+' kg':'—';
+ const names=['SEG','TER','QUA','QUI','SEX','SÁB','DOM']; const todayISO=today();
+ $('weeklyStrip').innerHTML=wk.dates.map((d,i)=>{const iso=localISO(d),x=db.diary[iso],complete=x&&(+x.kcal||0)>0&&(+x.burned||0)>0,net=complete?(+x.burned)-(+x.kcal):null;const state=complete?(net>=0?'deficit':'surplus'):'';return `<button class="week-day ${complete?'valid ':''}${state} ${iso===todayISO?'today':''}" data-date="${iso}"><div class="dow">${names[i]}</div><div class="num">${d.getDate()}</div><div class="dot">${complete?'✓':'○'}</div><div class="balance">${complete?(net>=0?'−':'+')+fmt(Math.abs(net))+' kcal':iso>todayISO?'futuro':'—'}</div></button>`}).join('');
+ document.querySelectorAll('.week-day[data-date]').forEach(b=>b.onclick=()=>{loadDiary(b.dataset.date);activateTab('diary')});
+ const allDiary=Object.values(db.diary).sort((a,b)=>b.date.localeCompare(a.date)); const latest=allDiary[0];
+ if(latest){const complete=(+latest.kcal||0)>0&&(+latest.burned||0)>0,net=(+latest.burned||0)-(+latest.kcal||0);$('lastDayCard').className='';$('lastDayCard').innerHTML=`<div class="muted">${parseDate(latest.date).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div><div class="metric"><span>Consumidas</span><b>${latest.kcal?fmt(latest.kcal)+' kcal':'—'}</b></div><div class="metric"><span>Gastas</span><b>${latest.burned?fmt(latest.burned)+' kcal':'—'}</b></div><div class="metric"><span>Saldo energético</span><b class="${complete?(net>=0?'saldo-deficit':'saldo-surplus'):''}">${complete?(net>=0?'−':'+')+fmt(Math.abs(net))+' kcal':'—'}</b></div><div class="daily-mini-grid"><div class="daily-mini"><span class="muted">Proteína</span><b>${latest.protein?fmt(latest.protein)+' g':'—'}</b></div><div class="daily-mini"><span class="muted">Água</span><b>${latest.water?fmt(latest.water)+' ml':'—'}</b></div><div class="daily-mini"><span class="muted">Tipo</span><b>${latest.type||'—'}</b></div></div>`;$('openLastDiary').onclick=()=>{loadDiary(latest.date);activateTab('diary')}}else{$('lastDayCard').className='empty';$('lastDayCard').textContent='Nenhum registro';}
+ const recent=allDiary.slice(0,5); $('recentDashboard').innerHTML=recent.length?`<div class="recent-row recent-head"><span>Data</span><span>Cons.</span><span>Gast.</span><span>Saldo</span></div>`+recent.map(x=>{const complete=(+x.kcal||0)>0&&(+x.burned||0)>0,net=(+x.burned||0)-(+x.kcal||0);return `<div class="recent-row" data-date="${x.date}"><span>${parseDate(x.date).toLocaleDateString('pt-BR')}</span><span>${x.kcal?fmt(x.kcal):'—'}</span><span>${x.burned?fmt(x.burned):'—'}</span><span class="${complete?(net>=0?'saldo-deficit':'saldo-surplus'):''}">${complete?(net>=0?'−':'+')+fmt(Math.abs(net)):'—'}</span></div>`}).join(''):'<div class="empty">Nenhum registro</div>'; document.querySelectorAll('#recentDashboard [data-date]').forEach(r=>r.onclick=()=>{loadDiary(r.dataset.date);activateTab('diary')});
+ $('openDiaryTab').onclick=()=>activateTab('diary');
+ let insights=[]; if(valid.length)insights.push(`<div class="insight">Nesta semana, o saldo acumulado é um <b>${deficit>=0?'déficit':'superávit'} de ${fmt(Math.abs(deficit))} kcal</b>, com média de ${fmt(Math.abs(avg))} kcal por dia preenchido.</div>`); if(score)insights.push(`<div class="insight">A aderência média dos registros da semana está em <b>${score}%</b>.</div>`); if(lastBody&&db.goals.weight)insights.push(`<div class="insight">Faltam <b>${fmt(Math.max(0,lastBody.weight-db.goals.weight))} kg</b> para a meta de peso.</div>`); if(!insights.length)insights.push('<div class="empty">Registre os dias da semana para receber análises.</div>'); $('quickInsights').innerHTML=insights.join('');
+}
+function activateTab(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===id));if(id==='evolution')renderCharts()}
 function renderDiary(){const rows=Object.values(db.diary).sort((a,b)=>b.date.localeCompare(a.date));$('diaryRows').innerHTML=rows.length?rows.map(x=>`<tr data-date="${x.date}"><td>${parseDate(x.date).toLocaleDateString('pt-BR')}</td><td>${fmt(x.kcal)}</td><td>${fmt(x.burned||0)}</td><td>${fmt((+x.kcal||0)-(+x.burned||0))}</td><td>${fmt(x.protein)}</td><td>${fmt(x.carbs)}</td><td>${fmt(x.fat)}</td><td>${fmt(x.water)}</td><td><span class="pill ${statusClass(diaryScore(x))}">${diaryScore(x)}%</span></td></tr>`).join(''):'<tr><td colspan="10" class="empty">Nenhum registro</td></tr>'; document.querySelectorAll('#diaryRows tr[data-date]').forEach(r=>r.onclick=()=>loadDiary(r.dataset.date)); renderCalendar();}
-function renderCalendar(){const ref=parseDate($('dDate').value||today());const y=ref.getFullYear(),m=ref.getMonth();$('calendarLabel').textContent=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});const first=new Date(y,m,1),last=new Date(y,m+1,0);let html='';for(let i=0;i<first.getDay();i++)html+='<div></div>';for(let day=1;day<=last.getDate();day++){const date=new Date(y,m,day,12).toISOString().slice(0,10),x=db.diary[date],sc=diaryScore(x);html+=`<button class="day ${x?'has '+statusClass(sc):''}" data-date="${date}">${day}</button>`}$('calendar').innerHTML=html;document.querySelectorAll('.day[data-date]').forEach(b=>b.onclick=()=>loadDiary(b.dataset.date))}
+function renderCalendar(){const ref=parseDate($('dDate').value||today());const y=ref.getFullYear(),m=ref.getMonth();$('calendarLabel').textContent=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});const first=new Date(y,m,1),last=new Date(y,m+1,0);let html='';for(let i=0;i<first.getDay();i++)html+='<div></div>';for(let day=1;day<=last.getDate();day++){const date=new Date(y,m,day,12).toISOString().slice(0,10),x=db.diary[date],sc=diaryScore(x);html+=`<button class="day ${x?'has '+statusClass(sc):''} ${date===$('dDate').value?'selected':''}" data-date="${date}">${day}</button>`}$('calendar').innerHTML=html;document.querySelectorAll('.day[data-date]').forEach(b=>b.onclick=()=>loadDiary(b.dataset.date))}
 function loadDiary(date){const x=db.diary[date]||{date};fill('d',x,[['Date','date'],['Kcal','kcal'],['Burned','burned'],['Protein','protein'],['Carbs','carbs'],['Fat','fat'],['Fiber','fiber'],['Water','water'],['Type','type'],['Hunger','hunger'],['Note','note']]);renderCalendar()}
 function shiftDiaryDay(offset){const current=parseDate($('dDate').value||yesterday());current.setDate(current.getDate()+offset);loadDiary(localISO(current));const diary=$('diary');diary.classList.add('swiping');diary.style.transform=`translateX(${offset>0?18:-18}px)`;diary.style.opacity='.82';requestAnimationFrame(()=>requestAnimationFrame(()=>{diary.style.transform='';diary.style.opacity='1'}));setTimeout(()=>diary.classList.remove('swiping'),180)}
 (function enableDiarySwipe(){const diary=$('diary');let startX=0,startY=0,tracking=false,blocked=false;const interactive='input,textarea,select,button,a,table,canvas,label';diary.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;blocked=!!e.target.closest(interactive);if(blocked)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;tracking=true},{passive:true});diary.addEventListener('touchend',e=>{if(!tracking||blocked)return;tracking=false;const t=e.changedTouches[0],dx=t.clientX-startX,dy=t.clientY-startY;if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.25)return;shiftDiaryDay(dx<0?1:-1)},{passive:true});diary.addEventListener('touchcancel',()=>{tracking=false;blocked=false},{passive:true})})();
