@@ -104,7 +104,12 @@
     <section id="reports" class="view">
       <div class="section-title"><h2>Relatórios inteligentes</h2><div class="actions"><button id="exportCsv" class="btn secondary small">Exportar CSV</button><button id="backupBtn" class="btn secondary small">Backup</button><label class="btn secondary small">Importar<input id="importFile" type="file" accept="application/json" hidden></label></div></div>
       <div id="reportKpis" class="kpis"></div>
-      <div class="grid two" style="margin-top:14px"><div class="card"><h2>Relatório dos últimos 30 dias</h2><div id="monthlyReport"></div></div><div class="card"><h2>Dias que mais fugiram da dieta</h2><div id="deviationReport"></div></div></div>
+      <div class="grid two" style="margin-top:14px">
+        <div class="card"><h2>Inteligência da semana</h2><div id="intelligenceWeek"></div></div>
+        <div class="card"><h2>Inteligência do mês</h2><div id="intelligenceMonth"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h2>Déficit × composição corporal</h2><div id="bodyRelationReport"></div></div>
+      <div class="grid two" style="margin-top:14px"><div class="card"><h2>Resumo dos últimos 30 dias</h2><div id="monthlyReport"></div></div><div class="card"><h2>Maiores saldos energéticos</h2><div id="deviationReport"></div></div></div>
       <div class="card" style="margin-top:14px"><h2>Padrões detectados</h2><div id="patternsReport"></div></div>
     </section>
   </main>
@@ -118,7 +123,7 @@ function load(){try{return {...defaultData,...JSON.parse(localStorage.getItem(KE
 function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
 const $=id=>document.getElementById(id); const localISO=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}; const today=()=>localISO(new Date()); const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return localISO(d)}; const fmt=n=>Number.isFinite(+n)?(+n).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—';
 function parseDate(s){return new Date(s+'T12:00:00')} function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)}
-function diaryScore(x){if(!x)return 0; const g=db.goals; const closeness=(v,t,tol=.1)=>{if(!t||v==null||v==='')return 0;return Math.max(0,1-Math.abs(v-t)/(t*tol*2))}; let s=0;s+=closeness(+x.kcal,+g.kcal,.1)*40;s+=closeness(+x.protein,+g.protein,.15)*30;s+=Math.min(1,(+x.water||0)/(+g.water||1))*15;s+=closeness(+x.carbs,+g.carbs,.2)*7.5;s+=closeness(+x.fat,+g.fat,.2)*7.5;return Math.round(s)}
+function diaryScore(x){if(!x)return 0;const g=db.goals;const closeness=(v,t,tol=.1)=>Math.max(0,1-Math.abs(v-t)/(t*tol*2));const items=[['kcal',g.kcal,.1,40],['protein',g.protein,.15,30],['water',g.water,.2,15],['carbs',g.carbs,.2,7.5],['fat',g.fat,.2,7.5]];let points=0,weight=0;items.forEach(([k,t,tol,w])=>{const v=+x[k];if(v>0&&+t>0){points+=(k==='water'?Math.min(1,v/t):closeness(v,+t,tol))*w;weight+=w}});return weight?Math.round(points/weight*100):0}
 function statusClass(score){return score>=80?'ok':score>=60?'warn':'bad'}
 function setPill(el,text,cls){el.textContent=text;el.className='pill '+(cls||'')}
 function fill(prefix,obj,fields){fields.forEach(f=>$(prefix+f[0]).value=obj?.[f[1]]??'')}
@@ -139,13 +144,114 @@ function renderGoals(){fill('g',db.goals,[['Kcal','kcal'],['Protein','protein'],
 function drawLine(canvas,points,opt={}){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1120';ctx.fillRect(0,0,w,h);if(points.length<1){ctx.fillStyle='#94a0ba';ctx.font='16px system-ui';ctx.fillText('Sem dados suficientes',30,45);return}const vals=points.map(p=>p.value).filter(Number.isFinite);if(opt.goal)vals.push(opt.goal);let min=Math.min(...vals),max=Math.max(...vals);if(min===max){min-=1;max+=1}const pad=42, X=i=>pad+(w-pad*2)*(points.length===1?.5:i/(points.length-1)),Y=v=>h-pad-(v-min)/(max-min)*(h-pad*2);ctx.strokeStyle='#25304a';ctx.lineWidth=1;for(let i=0;i<4;i++){let y=pad+i*(h-pad*2)/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke()}if(opt.goal){ctx.strokeStyle='#ffc66d';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(pad,Y(opt.goal));ctx.lineTo(w-pad,Y(opt.goal));ctx.stroke();ctx.setLineDash([])}ctx.strokeStyle='#7c9cff';ctx.lineWidth=4;ctx.beginPath();points.forEach((p,i)=>{const x=X(i),y=Y(p.value);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.fillStyle='#6ee7c8';points.forEach((p,i)=>{ctx.beginPath();ctx.arc(X(i),Y(p.value),5,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#94a0ba';ctx.font='12px system-ui';ctx.fillText(fmt(max),5,pad+4);ctx.fillText(fmt(min),5,h-pad+4)}
 function renderCharts(){let days=+$('rangeSelect')?.value||30;const cutoff=daysAgo(days);const bodies=Object.values(db.body).sort((a,b)=>a.date.localeCompare(b.date)).filter(x=>x.date>=cutoff);drawLine($('weightChart'),bodies.filter(x=>x.weight).map(x=>({date:x.date,value:+x.weight})),{goal:+db.goals.weight});drawMulti($('bodyChart'),bodies)}
 function drawMulti(canvas,bodies){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1120';ctx.fillRect(0,0,w,h);const series=[{k:'waist',label:'Cintura'},{k:'bodyFat',label:'Gordura %'}].map(s=>({...s,pts:bodies.filter(x=>x[s.k]).map(x=>+x[s.k])})).filter(s=>s.pts.length);if(!series.length){ctx.fillStyle='#94a0ba';ctx.font='16px system-ui';ctx.fillText('Sem dados suficientes',30,45);return}const all=series.flatMap(s=>s.pts),min=Math.min(...all),max=Math.max(...all),pad=42;const X=i=>pad+(w-pad*2)*(bodies.length===1?.5:i/(bodies.length-1)),Y=v=>h-pad-(v-min)/(max-min||1)*(h-pad*2);const colors=['#7c9cff','#6ee7c8'];series.forEach((s,si)=>{ctx.strokeStyle=colors[si];ctx.lineWidth=4;ctx.beginPath();let started=false;bodies.forEach((b,i)=>{if(!b[s.k])return;started?ctx.lineTo(X(i),Y(+b[s.k])):(ctx.moveTo(X(i),Y(+b[s.k])),started=true)});ctx.stroke();ctx.fillStyle=colors[si];ctx.fillText(s.label,55+si*120,22)});}
-function renderReports(){const arr=Object.values(db.diary).filter(x=>x.date>=daysAgo(29)).sort((a,b)=>a.date.localeCompare(b.date));const bodies=Object.values(db.body).filter(x=>x.date>=daysAgo(60)).sort((a,b)=>a.date.localeCompare(b.date));const avg=k=>arr.length?arr.reduce((s,x)=>s+(+x[k]||0),0)/arr.length:0;const adherence=arr.length?Math.round(arr.reduce((s,x)=>s+diaryScore(x),0)/arr.length):0;const excess=arr.reduce((s,x)=>s+Math.max(0,(+x.kcal||0)-(+db.goals.kcal||0)),0);const avgBurned=avg('burned');const avgNet=avg('kcal')-avgBurned;const weightChange=bodies.length>=2?bodies.at(-1).weight-bodies[0].weight:null;$('reportKpis').innerHTML=[['Dias registrados',arr.length],['Aderência',adherence+'%'],['Excesso kcal',fmt(excess)],['Peso',weightChange==null?'—':(weightChange>0?'+':'')+fmt(weightChange)+' kg']].map(x=>`<div class="kpi"><div class="v">${x[1]}</div><div class="l">${x[0]}</div></div>`).join('');
- let rep=[];rep.push(`<div class="insight">Média diária: <b>${fmt(avg('kcal'))} kcal consumidas</b>, <b>${fmt(avgBurned)} kcal gastas</b>, saldo médio de <b>${fmt(avgNet)} kcal</b>, <b>${fmt(avg('protein'))} g</b> de proteína e <b>${fmt(avg('water'))} ml</b> de água.</div>`);if(arr.length)rep.push(`<div class="insight ${adherence<70?'warn':''}">Você ficou com aderência média de <b>${adherence}%</b> em ${arr.length} dias registrados.</div>`);if(weightChange!=null)rep.push(`<div class="insight">A mudança de peso no período avaliado foi de <b>${weightChange>0?'+':''}${fmt(weightChange)} kg</b>.</div>`);$('monthlyReport').innerHTML=rep.join('')||'<div class="empty">Sem dados</div>';
- const dev=arr.map(x=>({...x,delta:(+x.kcal||0)-(+db.goals.kcal||0)})).sort((a,b)=>b.delta-a.delta).slice(0,5);$('deviationReport').innerHTML=dev.length?dev.map(x=>`<div class="metric"><span>${parseDate(x.date).toLocaleDateString('pt-BR')}<br><small class="muted">${x.note||x.type||''}</small></span><b class="${x.delta>0?'':'muted'}">${x.delta>0?'+':''}${fmt(x.delta)} kcal</b></div>`).join(''):'<div class="empty">Sem dados</div>';
- let patt=[];if(arr.length>=5){const byDow={};arr.forEach(x=>{const d=parseDate(x.date).getDay();(byDow[d]??=[]).push((+x.kcal||0)-(+db.goals.kcal||0))});const best=Object.entries(byDow).map(([d,v])=>[+d,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>b[1]-a[1])[0];const names=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];if(best&&best[1]>50)patt.push(`<div class="insight warn">Seu maior excesso médio ocorre em <b>${names[best[0]]}</b>: ${fmt(best[1])} kcal acima da meta.</div>`);const lowP=arr.filter(x=>(+x.protein||0)<(+db.goals.protein||0)*.85).length;if(lowP)patt.push(`<div class="insight">A proteína ficou abaixo de 85% da meta em <b>${lowP} dias</b>.</div>`);const lowW=arr.filter(x=>(+x.water||0)<(+db.goals.water||0)*.8).length;if(lowW)patt.push(`<div class="insight">A água ficou abaixo de 80% da meta em <b>${lowW} dias</b>.</div>`)}$('patternsReport').innerHTML=patt.join('')||'<div class="empty">São necessários mais registros para detectar padrões.</div>'}
-
+function periodBounds(kind){
+ const now=new Date();
+ if(kind==='week'){
+  const end=new Date(now); end.setHours(12,0,0,0);
+  const start=new Date(end); const dow=(start.getDay()+6)%7; start.setDate(start.getDate()-dow);
+  return {start:localISO(start),end:localISO(end),label:`${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`};
+ }
+ const start=new Date(now.getFullYear(),now.getMonth(),1,12),end=new Date(now.getFullYear(),now.getMonth()+1,0,12);
+ return {start:localISO(start),end:localISO(end),label:now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})};
+}
+function energyAnalysis(start,end){
+ const all=Object.values(db.diary).filter(x=>x.date>=start&&x.date<=end).sort((a,b)=>a.date.localeCompare(b.date));
+ const valid=all.filter(x=>(+x.kcal||0)>0&&(+x.burned||0)>0);
+ const span=Math.max(1,Math.round((parseDate(end)-parseDate(start))/86400000)+1);
+ const consumed=valid.reduce((s,x)=>s+(+x.kcal),0),burned=valid.reduce((s,x)=>s+(+x.burned),0);
+ const deficit=burned-consumed,avg=valid.length?deficit/valid.length:null;
+ return {all,valid,span,coverage:valid.length/span,consumed,burned,deficit,avg,fatEq:deficit/7700};
+}
+function nearestBody(date,direction='before'){
+ const arr=Object.values(db.body).filter(x=>x.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(direction==='before') return arr.filter(x=>x.date<=date).at(-1)||arr.find(x=>x.date>=date)||null;
+ return arr.find(x=>x.date>=date)||arr.filter(x=>x.date<=date).at(-1)||null;
+}
+function deltaVal(a,b,k){return a&&b&&(+a[k]||+b[k])?(+b[k]||0)-(+a[k]||0):null}
+function signed(v,unit=''){return v==null?'—':`${v>0?'+':''}${fmt(v)}${unit?' '+unit:''}`}
+function intelligenceHtml(kind){
+ const b=periodBounds(kind),e=energyAnalysis(b.start,b.end),title=kind==='week'?'semana':'mês';
+ if(!e.valid.length)return `<div class="empty">Preencha calorias consumidas e gastas para gerar a análise da ${title}.</div>`;
+ const balanceWord=e.deficit>=0?'déficit':'superávit',abs=Math.abs(e.deficit),quality=e.coverage>=.8?'boa':e.coverage>=.5?'parcial':'baixa';
+ let html=`<div class="insight"><b>${b.label}</b><br>${e.valid.length} de ${e.span} dias com dados completos · cobertura <b>${Math.round(e.coverage*100)}%</b> (${quality}).</div>`;
+ html+=`<div class="metric"><span>${balanceWord==='déficit'?'Déficit acumulado':'Superávit acumulado'}</span><b>${fmt(abs)} kcal</b></div>`;
+ html+=`<div class="metric"><span>Média diária</span><b>${e.avg>=0?'−':'+'}${fmt(Math.abs(e.avg))} kcal/dia</b></div>`;
+ html+=`<div class="metric"><span>Equivalente energético teórico</span><b>${e.fatEq>=0?'−':'+'}${fmt(Math.abs(e.fatEq))} kg</b></div>`;
+ const projected=e.valid.length?e.deficit/e.valid.length*e.span:0;
+ if(e.coverage<.95)html+=`<div class="insight warn">Com os dias faltantes, o total observado não representa todo o período. Mantida a média registrada, a projeção seria de <b>${projected>=0?'déficit':'superávit'} de ${fmt(Math.abs(projected))} kcal</b>.</div>`;
+ else html+=`<div class="insight">O período está quase completo, portanto o saldo acumulado tem boa confiabilidade.</div>`;
+ return html;
+}
+function bodyRelationHtml(){
+ const bodies=Object.values(db.body).filter(x=>x.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(bodies.length<2)return '<div class="empty">Registre pelo menos duas avaliações corporais para cruzar o déficit com os resultados.</div>';
+ const end=bodies.at(-1),start=bodies.at(-2),e=energyAnalysis(start.date,end.date);
+ const days=Math.max(1,Math.round((parseDate(end.date)-parseDate(start.date))/86400000));
+ const metrics=[['Peso','weight','kg'],['Massa gorda','fatMass','kg'],['Gordura corporal','bodyFat','p.p.'],['Músculo esquelético','muscle','kg'],['Cintura','waist','cm'],['Água corporal','bodyWater','p.p.']];
+ let html=`<div class="insight"><b>${parseDate(start.date).toLocaleDateString('pt-BR')} → ${parseDate(end.date).toLocaleDateString('pt-BR')}</b> (${days} dias)<br>Análise entre as duas avaliações corporais mais recentes.</div>`;
+ if(!e.valid.length)html+='<div class="insight warn">Não há dias com kcal consumidas e gastas completas entre essas avaliações.</div>';
+ else{
+  html+=`<div class="metric"><span>Saldo energético acumulado</span><b>${e.deficit>=0?'−':'+'}${fmt(Math.abs(e.deficit))} kcal</b></div>`;
+  html+=`<div class="metric"><span>Cobertura nutricional</span><b>${e.valid.length}/${e.span} dias (${Math.round(e.coverage*100)}%)</b></div>`;
+ }
+ metrics.forEach(([label,k,u])=>{const d=deltaVal(start,end,k);if(d!=null)html+=`<div class="metric"><span>${label}</span><b>${signed(d,u)}</b></div>`});
+ const dw=deltaVal(start,end,'weight'),df=deltaVal(start,end,'fatMass'),dm=deltaVal(start,end,'muscle'),dc=deltaVal(start,end,'waist');
+ let interpretation=[];
+ if(e.valid.length&&e.coverage>=.5){
+  const expected=-e.deficit/7700;
+  if(df!=null){const gap=df-expected;interpretation.push(`O saldo energético sugere cerca de <b>${signed(expected,'kg')}</b> de mudança teórica de gordura; a bioimpedância indicou <b>${signed(df,'kg')}</b> de massa gorda. A diferença foi de <b>${signed(gap,'kg')}</b>.`)}
+  else if(dw!=null)interpretation.push(`O saldo energético equivale teoricamente a <b>${signed(expected,'kg')}</b>, enquanto o peso mudou <b>${signed(dw,'kg')}</b>. Parte da diferença pode ser água, glicogênio, conteúdo intestinal e massa magra.`);
+ }
+ if(dw!=null&&dc!=null){
+  if(dw>=-.2&&dc<-.5)interpretation.push('Peso praticamente estável com redução de cintura: padrão compatível com melhora corporal apesar da balança estável.');
+  if(dw<0&&dc<0)interpretation.push('Peso e cintura diminuíram na mesma direção, reforçando uma evolução favorável.');
+  if(dw<0&&dc>=.5)interpretation.push('O peso caiu, mas a cintura não acompanhou; vale repetir a medida em condições padronizadas antes de concluir.');
+ }
+ if(df!=null&&dm!=null){
+  if(df<0&&dm>=-.3)interpretation.push('A massa gorda caiu com músculo esquelético relativamente preservado.');
+  if(df<0&&dm<-.5)interpretation.push('Houve queda de massa gorda, mas também redução relevante de músculo; revise proteína, treino e velocidade do déficit.');
+ }
+ const sameCondition=start.condition&&end.condition&&start.condition===end.condition;
+ html+=interpretation.map(t=>`<div class="insight">${t}</div>`).join('');
+ if(!sameCondition)html+=`<div class="insight warn">As avaliações foram registradas em condições diferentes ou não informadas. Bioimpedância varia com hidratação, horário, alimentação e treino; interprete principalmente a tendência.</div>`;
+ if(e.valid.length&&e.coverage<.5)html+=`<div class="insight warn">A cobertura energética entre as avaliações foi inferior a 50%; a relação entre déficit e composição corporal tem baixa confiabilidade.</div>`;
+ return html;
+}
+function renderReports(){
+ const arr=Object.values(db.diary).filter(x=>x.date>=daysAgo(29)).sort((a,b)=>a.date.localeCompare(b.date));
+ const bodies=Object.values(db.body).filter(x=>x.date>=daysAgo(60)).sort((a,b)=>a.date.localeCompare(b.date));
+ const filled=k=>arr.map(x=>+x[k]).filter(v=>Number.isFinite(v)&&v>0);
+ const avgFilled=k=>{const v=filled(k);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
+ const scored=arr.filter(x=>diaryScore(x)>0);
+ const adherence=scored.length?Math.round(scored.reduce((s,x)=>s+diaryScore(x),0)/scored.length):0;
+ const energyDays=arr.filter(x=>(+x.kcal||0)>0&&(+x.burned||0)>0);
+ const netDeficit=energyDays.reduce((s,x)=>s+(+x.burned)-(+x.kcal),0);
+ const avgConsumed=avgFilled('kcal'),avgBurned=avgFilled('burned');
+ const avgNet=energyDays.length?energyDays.reduce((s,x)=>s+(+x.kcal)-(+x.burned),0)/energyDays.length:null;
+ const weightChange=bodies.length>=2?bodies.at(-1).weight-bodies[0].weight:null;
+ $('reportKpis').innerHTML=[
+  ['Dias registrados',arr.length],['Aderência',scored.length?adherence+'%':'—'],
+  [netDeficit>=0?'Déficit 30 dias':'Superávit 30 dias',energyDays.length?fmt(Math.abs(netDeficit))+' kcal':'—'],
+  ['Peso',weightChange==null?'—':signed(weightChange,'kg')]
+ ].map(x=>`<div class="kpi"><div class="v">${x[1]}</div><div class="l">${x[0]}</div></div>`).join('');
+ $('intelligenceWeek').innerHTML=intelligenceHtml('week');
+ $('intelligenceMonth').innerHTML=intelligenceHtml('month');
+ $('bodyRelationReport').innerHTML=bodyRelationHtml();
+ let rep=[];
+ if(avgConsumed!=null||avgBurned!=null){const parts=[];if(avgConsumed!=null)parts.push(`<b>${fmt(avgConsumed)} kcal consumidas</b>`);if(avgBurned!=null)parts.push(`<b>${fmt(avgBurned)} kcal gastas</b>`);if(avgNet!=null)parts.push(`saldo médio de <b>${avgNet>0?'+':''}${fmt(avgNet)} kcal</b>`);const p=avgFilled('protein'),w=avgFilled('water');if(p!=null)parts.push(`<b>${fmt(p)} g</b> de proteína`);if(w!=null)parts.push(`<b>${fmt(w)} ml</b> de água`);rep.push(`<div class="insight">Médias dos últimos 30 dias: ${parts.join(', ')}.</div>`)}
+ if(scored.length)rep.push(`<div class="insight ${adherence<70?'warn':''}">A aderência média foi de <b>${adherence}%</b> nos <b>${scored.length} dias</b> com dados suficientes.</div>`);
+ if(weightChange!=null)rep.push(`<div class="insight">A mudança de peso nas avaliações disponíveis foi de <b>${signed(weightChange,'kg')}</b>.</div>`);
+ $('monthlyReport').innerHTML=rep.join('')||'<div class="empty">Sem dados</div>';
+ const dev=energyDays.map(x=>({...x,balance:(+x.kcal)-(+x.burned),goalDelta:(+x.kcal)-(+db.goals.kcal||0)})).sort((a,b)=>b.balance-a.balance).slice(0,5);
+ $('deviationReport').innerHTML=dev.length?dev.map(x=>`<div class="metric"><span>${parseDate(x.date).toLocaleDateString('pt-BR')}<br><small class="muted">${fmt(x.kcal)} consumidas − ${fmt(x.burned)} gastas<br>Desvio da meta: ${x.goalDelta>0?'+':''}${fmt(x.goalDelta)} kcal</small></span><b class="${x.balance>0?'':'muted'}">${x.balance>0?'+':''}${fmt(x.balance)} kcal</b></div>`).join(''):'<div class="empty">Preencha calorias consumidas e gastas.</div>';
+ let patt=[];
+ if(energyDays.length>=5){const byDow={};energyDays.forEach(x=>{const d=parseDate(x.date).getDay();(byDow[d]??=[]).push((+x.kcal)-(+x.burned))});const best=Object.entries(byDow).map(([d,v])=>[+d,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>b[1]-a[1])[0];const names=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];if(best&&best[1]>50)patt.push(`<div class="insight warn">Seu maior saldo energético médio ocorre em <b>${names[best[0]]}</b>: <b>+${fmt(best[1])} kcal</b>.</div>`)}
+ const proteinDays=arr.filter(x=>(+x.protein||0)>0),lowP=proteinDays.filter(x=>(+x.protein)<(+db.goals.protein||0)*.85).length;if(lowP)patt.push(`<div class="insight">A proteína ficou abaixo de 85% da meta em <b>${lowP} de ${proteinDays.length} dias informados</b>.</div>`);
+ const waterDays=arr.filter(x=>(+x.water||0)>0),lowW=waterDays.filter(x=>(+x.water)<(+db.goals.water||0)*.8).length;if(lowW)patt.push(`<div class="insight">A água ficou abaixo de 80% da meta em <b>${lowW} de ${waterDays.length} dias informados</b>.</div>`);
+ $('patternsReport').innerHTML=patt.join('')||'<div class="empty">São necessários mais registros completos para detectar padrões.</div>';
+}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');renderAll()});
-$('diaryForm').onsubmit=e=>{e.preventDefault();const date=$('dDate').value;db.diary[date]={date,kcal:+$('dKcal').value||0,burned:+$('dBurned').value||0,protein:+$('dProtein').value||0,carbs:+$('dCarbs').value||0,fat:+$('dFat').value||0,fiber:+$('dFiber').value||0,water:+$('dWater').value||0,type:$('dType').value,hunger:+$('dHunger').value||0,note:$('dNote').value};save()};
+$('diaryForm').onsubmit=e=>{e.preventDefault();const date=$('dDate').value;const num=id=>$(id).value===''?null:+$(id).value;db.diary[date]={date,kcal:num('dKcal'),burned:num('dBurned'),protein:num('dProtein'),carbs:num('dCarbs'),fat:num('dFat'),fiber:num('dFiber'),water:num('dWater'),type:$('dType').value,hunger:num('dHunger'),note:$('dNote').value};save()};
 $('bodyForm').onsubmit=e=>{e.preventDefault();const date=$('bDate').value;db.body[date]={date,weight:+$('bWeight').value||0,muscle:+$('bMuscle').value||0,fatMass:+$('bFatMass').value||0,bodyFat:+$('bBodyFat').value||0,bodyWater:+$('bBodyWater').value||0,waist:+$('bWaist').value||0,condition:$('bCondition').value,source:$('bSource').value,note:$('bNote').value};save()};
 $('goalsForm').onsubmit=e=>{e.preventDefault();db.goals={kcal:+$('gKcal').value||0,protein:+$('gProtein').value||0,carbs:+$('gCarbs').value||0,fat:+$('gFat').value||0,fiber:+$('gFiber').value||0,water:+$('gWater').value||0,weight:+$('gWeight').value||0,waist:+$('gWaist').value||0,bodyFat:+$('gBodyFat').value||0,date:$('gDate').value};save()};
 $('deleteDay').onclick=()=>{const d=$('dDate').value;if(db.diary[d]&&confirm('Excluir este dia?')){delete db.diary[d];save();loadDiary(d)}};$('deleteBody').onclick=()=>{const d=$('bDate').value;if(db.body[d]&&confirm('Excluir esta avaliação?')){delete db.body[d];save();loadBody(d)}};
