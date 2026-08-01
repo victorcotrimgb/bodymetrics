@@ -172,12 +172,16 @@
 <script>
 const KEY='bodymetrics_v1';
 const defaultData={diary:{},body:{},goals:{kcal:1800,protein:180,carbs:160,fat:60,fiber:30,water:3000,creatine:5,weight:89,waist:95,bodyFat:25,date:''}};
+const $=id=>document.getElementById(id);
+const localISO=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)};
+const today=()=>localISO(new Date());
+const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return localISO(d)};
+const fmt=n=>Number.isFinite(+n)?(+n).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—';
 let dashboardWeekValue=isoWeekValue(new Date());
 let dashboardMonthValue=localISO(new Date()).slice(0,7);
 let db=load();
 function load(){try{return {...defaultData,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(defaultData)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
-const $=id=>document.getElementById(id); const localISO=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}; const today=()=>localISO(new Date()); const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return localISO(d)}; const fmt=n=>Number.isFinite(+n)?(+n).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—';
 function parseDate(s){return new Date(s+'T12:00:00')} function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)}
 function diaryScore(x){if(!x)return 0;const g=db.goals;const closeness=(v,t,tol=.1)=>Math.max(0,1-Math.abs(v-t)/(t*tol*2));const items=[['kcal',g.kcal,.1,40],['protein',g.protein,.15,30],['water',g.water,.2,15],['carbs',g.carbs,.2,7.5],['fat',g.fat,.2,7.5]];let points=0,weight=0;items.forEach(([k,t,tol,w])=>{const v=+x[k];if(v>0&&+t>0){points+=(k==='water'?Math.min(1,v/t):closeness(v,+t,tol))*w;weight+=w}});return weight?Math.round(points/weight*100):0}
 function statusClass(score){return score>=80?'ok':score>=60?'warn':'bad'}
