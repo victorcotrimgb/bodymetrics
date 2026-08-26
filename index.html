@@ -37,6 +37,10 @@
     .weekly-ring{width:128px;height:128px;flex:none}
     .week-balance{font-size:34px;font-weight:900;letter-spacing:-1px;margin:4px 0}
     .week-balance.deficit{color:var(--ok)}.week-balance.surplus{color:var(--danger)}
+    .week-macro-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:13px}
+    .week-macro-item{background:#0b1220;border:1px solid #202c45;border-radius:12px;padding:9px 10px;min-width:0}
+    .week-macro-item span{display:block;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .week-macro-item b{display:block;margin-top:3px;font-size:14px;white-space:nowrap}
     .weekly-strip{display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:8px;overflow-x:auto;padding:4px 1px 8px;scrollbar-width:none}
     .weekly-strip::-webkit-scrollbar{display:none}
     .week-day{min-width:72px;background:#0c1322;border:1px solid #273451;border-radius:16px;padding:10px 7px;text-align:center;color:var(--text)}
@@ -51,7 +55,7 @@
     .saldo-deficit{color:var(--ok);font-weight:800}.saldo-surplus{color:var(--danger);font-weight:800}
     .calendar{gap:8px}.day{color:#eef3ff;background:#151e30;border-color:#354564;font-weight:750;font-size:14px}.day:hover,.day:focus{background:#202d45;border-color:#6f8eea}.day.selected{outline:2px solid var(--accent);background:#253352}.day:not(.has){color:#b8c4da;background:#101827}.day.has{background:#172338;border-color:#536a9a}
     .day.ok:after,.day.warn:after,.day.bad:after{width:8px;height:8px;box-shadow:0 0 8px currentColor}
-    @media(max-width:760px){.macro-report-grid{grid-template-columns:1fr}.period-head{align-items:flex-start;flex-direction:column}.period-head input{width:100%}.weekly-hero,.dashboard-lower{grid-template-columns:1fr}.weekly-main{grid-template-columns:auto 1fr;gap:14px}.weekly-ring{width:104px;height:104px}.week-balance{font-size:27px}.weekly-strip{margin-right:-14px}.daily-mini-grid{grid-template-columns:repeat(3,1fr)}.recent-list .recent-row{grid-template-columns:1.25fr .75fr .75fr .8fr;font-size:12px}}
+    @media(max-width:760px){.macro-report-grid{grid-template-columns:1fr}.period-head{align-items:flex-start;flex-direction:column}.period-head input{width:100%}.weekly-hero,.dashboard-lower{grid-template-columns:1fr}.weekly-main{grid-template-columns:auto 1fr;gap:14px}.weekly-ring{width:104px;height:104px}.week-balance{font-size:27px}.week-macro-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-column:1/-1}.weekly-strip{margin-right:-14px}.daily-mini-grid{grid-template-columns:repeat(3,1fr)}.recent-list .recent-row{grid-template-columns:1.25fr .75fr .75fr .8fr;font-size:12px}}
   </style>
 </head>
 <body>
@@ -68,6 +72,12 @@
             <div id="weekBalanceLabel" class="week-balance">Sem dados</div>
             <div id="weekAverage" class="muted">Preencha calorias consumidas e gastas</div>
             <div id="weekCoverage" class="muted" style="margin-top:5px"></div>
+            <div class="week-macro-grid" aria-label="Médias nutricionais da semana">
+              <div class="week-macro-item"><span>Proteína média</span><b id="weekProteinAvg">—</b></div>
+              <div class="week-macro-item"><span>Carbo médio</span><b id="weekCarbsAvg">—</b></div>
+              <div class="week-macro-item"><span>Gordura média</span><b id="weekFatAvg">—</b></div>
+              <div class="week-macro-item"><span>Água média</span><b id="weekWaterAvg">—</b></div>
+            </div>
           </div>
         </div>
         <div class="card"><h3>Resumo corporal</h3><div class="metric"><span>Peso atual</span><b id="dashWeight">—</b></div><div class="metric"><span>Cintura</span><b id="dashWaist">—</b></div><div class="metric"><span>Meta de peso</span><b id="dashGoalWeight">—</b></div></div>
@@ -204,6 +214,12 @@ function renderDashboard(){
  $('scoreValue').textContent=score; $('scoreRing').style.setProperty('--p',score);
  const bal=$('weekBalanceLabel'); if(valid.length){bal.textContent=`${deficit>=0?'Déficit':'Superávit'} ${fmt(Math.abs(deficit))} kcal`;bal.className='week-balance '+(deficit>=0?'deficit':'surplus');$('weekAverage').textContent=`Média diária: ${avg>=0?'−':'+'}${fmt(Math.abs(avg))} kcal`;}else{bal.textContent='Sem dados completos';bal.className='week-balance';$('weekAverage').textContent='Informe consumidas e gastas';}
  $('weekCoverage').textContent=`${registered.length} de ${eligible.length} dias registrados`; $('weekRegisterCount').textContent=`${registered.length}/${eligible.length} dias`;
+ const weekMetricAvg=(key)=>{const vals=registered.map(x=>+x[key]).filter(v=>Number.isFinite(v)&&v>0);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null};
+ const ptnAvg=weekMetricAvg('protein'),carbAvg=weekMetricAvg('carbs'),fatAvg=weekMetricAvg('fat'),waterAvg=weekMetricAvg('water');
+ $('weekProteinAvg').textContent=ptnAvg!==null?fmt(ptnAvg)+' g':'—';
+ $('weekCarbsAvg').textContent=carbAvg!==null?fmt(carbAvg)+' g':'—';
+ $('weekFatAvg').textContent=fatAvg!==null?fmt(fatAvg)+' g':'—';
+ $('weekWaterAvg').textContent=waterAvg!==null?fmt(waterAvg)+' ml':'—';
  $('dashWeekTitle').textContent=wk.current?'Semana atual':`Semana ${dashboardWeekValue.split('W')[1]}`;$('dashWeekRange').textContent=wk.bounds.label;
  const bodies=Object.values(db.body).sort((a,b)=>a.date.localeCompare(b.date)); const lastBody=bodies.at(-1); $('dashWeight').textContent=lastBody?.weight?fmt(lastBody.weight)+' kg':'—'; $('dashWaist').textContent=lastBody?.waist?fmt(lastBody.waist)+' cm':'—'; $('dashGoalWeight').textContent=db.goals.weight?fmt(db.goals.weight)+' kg':'—';
  const names=['DOM','SEG','TER','QUA','QUI','SEX','SÁB']; const todayISO=today();
