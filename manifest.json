@@ -1,7 +1,7 @@
 {
   "name": "BodyMetrics",
   "short_name": "BodyMetrics",
-  "start_url":"./?app=v10.7",
+  "start_url":"./?app=v10.9",
   "display": "standalone",
   "background_color": "#070a12",
   "theme_color": "#0b1020",

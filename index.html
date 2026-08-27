@@ -48,6 +48,15 @@
     .health-secondary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     .health-secondary .field{background:#0c1322;border:1px solid #253451;border-radius:16px;padding:11px}
     .health-secondary .field.full{grid-column:1/-1}
+
+    .adh-monthly{display:grid;grid-template-columns:1fr;gap:0;margin-top:10px}
+    .adh-row{display:grid;grid-template-columns:90px 1fr 78px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #202a40}
+    .adh-row:last-child{border-bottom:0}
+    .adh-main{font-size:12px;color:var(--muted)}
+    .adh-main b{display:block;color:var(--text);font-size:13px;margin-bottom:3px}
+    .adh-score{text-align:right;font-size:20px;font-weight:850}
+    .adh-score.good{color:var(--ok)}.adh-score.warn{color:var(--warn)}.adh-score.bad{color:var(--danger)}
+
     .diet-eff-grid{display:grid;grid-template-columns:1fr;gap:0;margin-top:10px}
     .diet-eff-row{display:grid;grid-template-columns:85px 1fr 90px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #202a40}
     .diet-eff-row:last-child{border-bottom:0}
@@ -65,7 +74,7 @@
     .weekly-ring{width:128px;height:128px;flex:none}
     .week-balance{font-size:34px;font-weight:900;letter-spacing:-1px;margin:4px 0}
     .week-balance.deficit{color:var(--ok)}.week-balance.surplus{color:var(--danger)}
-    .week-energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
+    .week-energy-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:13px}
     .week-energy-item{background:#0b1220;border:1px solid #283754;border-radius:14px;padding:11px 12px;min-width:0}
     .week-energy-item span{display:block;color:var(--muted);font-size:11px}
     .week-energy-item b{display:block;margin-top:3px;font-size:17px}
@@ -89,12 +98,12 @@
     .saldo-deficit{color:var(--ok);font-weight:800}.saldo-surplus{color:var(--danger);font-weight:800}
     .calendar{gap:8px}.day{color:#eef3ff;background:#151e30;border-color:#354564;font-weight:750;font-size:14px}.day:hover,.day:focus{background:#202d45;border-color:#6f8eea}.day.selected{outline:2px solid var(--accent);background:#253352}.day:not(.has){color:#b8c4da;background:#101827}.day.has{background:#172338;border-color:#536a9a}
     .day.ok:after,.day.warn:after,.day.bad:after{width:8px;height:8px;box-shadow:0 0 8px currentColor}
-    @media(max-width:760px){.macro-report-grid{grid-template-columns:1fr}.period-head{align-items:flex-start;flex-direction:column}.period-head input{width:100%}.weekly-hero,.dashboard-lower{grid-template-columns:1fr}.weekly-main{grid-template-columns:auto 1fr;gap:14px}.weekly-ring{width:104px;height:104px}.week-balance{font-size:27px}.week-energy-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-column:1/-1}.week-macro-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-column:1/-1}.health-energy-grid{grid-template-columns:1fr}.health-macro-grid{grid-template-columns:repeat(3,1fr)}.weekly-strip{margin-right:-14px}.daily-mini-grid{grid-template-columns:repeat(3,1fr)}.recent-list .recent-row{grid-template-columns:1.25fr .75fr .75fr .8fr;font-size:12px}}
+    @media(max-width:760px){.macro-report-grid{grid-template-columns:1fr}.period-head{align-items:flex-start;flex-direction:column}.period-head input{width:100%}.weekly-hero,.dashboard-lower{grid-template-columns:1fr}.weekly-main{grid-template-columns:auto 1fr;gap:14px}.weekly-ring{width:104px;height:104px}.week-balance{font-size:27px}.week-energy-grid{grid-template-columns:1fr;grid-column:1/-1}.week-macro-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-column:1/-1}.health-energy-grid{grid-template-columns:1fr}.health-macro-grid{grid-template-columns:repeat(3,1fr)}.weekly-strip{margin-right:-14px}.daily-mini-grid{grid-template-columns:repeat(3,1fr)}.recent-list .recent-row{grid-template-columns:1.25fr .75fr .75fr .8fr;font-size:12px}}
   </style>
 </head>
 <body>
 <div class="app">
-  <header class="topbar"><div class="brand"><img class="logo logo-img" src="logo.png" alt="Logo BodyMetrics"><div><h1>BodyMetrics</h1><div class="sub">Nutrição, corpo e inteligência de evolução <span style="font-size:10px;opacity:.55">v10.7</span></div></div></div><button id="installBtn" class="install">Instalar</button></header>
+  <header class="topbar"><div class="brand"><img class="logo logo-img" src="logo.png" alt="Logo BodyMetrics"><div><h1>BodyMetrics</h1><div class="sub">Nutrição, corpo e inteligência de evolução <span style="font-size:10px;opacity:.55">v10.9</span></div></div></div><button id="installBtn" class="install">Instalar</button></header>
 
   <main>
     <section id="dashboard" class="view active">
@@ -106,7 +115,8 @@
             <div id="weekBalanceLabel" class="week-balance">Sem dados</div>
             <div id="weekAverage" class="muted">Preencha calorias consumidas e gastas</div>
             <div id="weekCoverage" class="muted" style="margin-top:5px"></div>
-            <div class="week-energy-grid" aria-label="Médias energéticas da semana">
+            <div class="week-energy-grid" aria-label="Aderência e médias energéticas da semana">
+              <div class="week-energy-item" id="weekAdherenceBox"><span>Aderência média</span><b id="weekAdherenceAvg">—</b><small id="weekAdherenceDetail">—</small></div>
               <div class="week-energy-item" id="weekConsumedBox"><span>Consumo médio</span><b id="weekConsumedAvg">—</b><small id="weekConsumedGoal">Meta não definida</small></div>
               <div class="week-energy-item" id="weekBurnedBox"><span>Gasto médio</span><b id="weekBurnedAvg">—</b><small id="weekBurnedGoal">Meta não definida</small></div>
             </div>
@@ -229,6 +239,7 @@
       <div class="grid two" style="margin-top:14px"><div class="card"><div class="chart-head"><h2>Peso e média móvel</h2><select id="rangeSelect"><option value="30">30 dias</option><option value="90">90 dias</option><option value="365">1 ano</option><option value="99999">Tudo</option></select></div><canvas id="weightChart" width="900" height="260"></canvas></div><div class="card"><h2>Cintura e gordura</h2><canvas id="bodyChart" width="900" height="260"></canvas></div></div>
       <div class="card" style="margin-top:14px"><div class="section-title"><h2>Médias mensais da composição corporal</h2><span class="pill">mês a mês</span></div><div class="compact-note">Comparação entre as médias mensais das medições. Cada mês usa a média de todas as avaliações disponíveis; no mês atual, a média considera apenas as medições realizadas até agora. A variação exibida é a média do mês menos a média do mês anterior.</div><div id="monthlyBiometryReport" class="monthly-biometry-grid"></div></div>
       <div class="card" style="margin-top:14px"><div class="section-title"><h2>Eficiência da dieta mês a mês</h2><span class="pill">déficit × gordura</span></div><div class="compact-note">Compara a queda da massa gorda média do mês com a perda teórica estimada pelo déficit calórico registrado (7.700 kcal ≈ 1 kg). Use como indicador de concordância, não como eficiência metabólica real: bioimpedância, hidratação e variações de composição podem gerar valores acima de 100%.</div><div id="dietEfficiencyReport" class="diet-eff-grid"></div></div>
+      <div class="card" style="margin-top:14px"><div class="section-title"><h2>Aderência mês a mês</h2><span class="pill">metas nutricionais</span></div><div class="compact-note">A nota mensal é a média dos escores dos dias registrados. Cada dia recebe uma nota usando apenas os itens realmente preenchidos: calorias, proteína, carboidratos, gordura, água e creatina. Campos ausentes não contam como zero.</div><div id="monthlyAdherenceReport" class="adh-monthly"></div></div>
     </section>
 
     <section id="reports" class="view">
@@ -264,7 +275,7 @@ function diaryScore(x){if(!x)return 0;const g=db.goals;const closeness=(v,t,tol=
 function statusClass(score){return score>=80?'ok':score>=60?'warn':'bad'}
 function setPill(el,text,cls){el.textContent=text;el.className='pill '+(cls||'')}
 function fill(prefix,obj,fields){fields.forEach(f=>$(prefix+f[0]).value=obj?.[f[1]]??'')}
-function renderAll(){renderDashboard();renderDiary();renderBody();renderGoals();renderCharts();renderMonthlyBiometry();renderDietEfficiency();renderReports()}
+function renderAll(){renderDashboard();renderDiary();renderBody();renderGoals();renderCharts();renderMonthlyBiometry();renderDietEfficiency();renderMonthlyAdherence();renderReports()}
 function dashboardWeekDates(){
  const bounds=weekBoundsFromValue(dashboardWeekValue),start=parseDate(bounds.start),end=parseDate(bounds.end),dates=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+i);dates.push(d)}
  const current=dashboardWeekValue===isoWeekValue(new Date()),cutoff=current?parseDate(yesterday()):end;
@@ -285,6 +296,12 @@ function renderDashboard(){
  $('weekCarbsAvg').textContent=carbAvg!==null?fmt(carbAvg)+' g':'—';
  $('weekFatAvg').textContent=fatAvg!==null?fmt(fatAvg)+' g':'—';
  $('weekWaterAvg').textContent=waterAvg!==null?fmt(waterAvg)+' ml':'—';
+ const adherenceScores=registered.map(dailyAdherenceScore).filter(v=>v!=null);
+ const adherenceAvg=adherenceScores.length?adherenceScores.reduce((a,b)=>a+b,0)/adherenceScores.length:null;
+ $('weekAdherenceAvg').textContent=adherenceAvg!=null?fmt(adherenceAvg)+'%':'—';
+ $('weekAdherenceDetail').textContent=adherenceScores.length?`${adherenceScores.filter(v=>v>=85).length} dias ≥85% · ${adherenceScores.filter(v=>v<70).length} dias <70%`:'Sem dados suficientes';
+ const ab=$('weekAdherenceBox');ab.className='week-energy-item';
+ if(adherenceAvg!=null)ab.classList.add(adherenceAvg>=85?'good':adherenceAvg>=70?'warn':'bad');
  const consumedAvg=weekMetricAvg('kcal'),burnedAvg=weekMetricAvg('burned'),intakeGoal=+db.goals.kcal||0,burnGoal=+db.goals.burned||0;
  $('weekConsumedAvg').textContent=consumedAvg!==null?fmt(consumedAvg)+' kcal':'—';$('weekBurnedAvg').textContent=burnedAvg!==null?fmt(burnedAvg)+' kcal':'—';
  $('weekConsumedGoal').textContent=intakeGoal?(consumedAvg!==null?`Meta ${fmt(intakeGoal)} · ${consumedAvg-intakeGoal>=0?'+':''}${fmt(consumedAvg-intakeGoal)} kcal`:`Meta ${fmt(intakeGoal)} kcal`):'Meta não definida';
@@ -384,6 +401,52 @@ function renderDietEfficiency(){
   html+=`<div class="diet-eff-row"><b>${monthName(cur.month)}</b><div class="diet-eff-main"><b>Massa gorda média ${fatText}</b>${energy}${theoretical!=null?` · teórico −${fmt(theoretical)} kg`:''}</div><div class="diet-eff-value ${cls}">${eff==null?'—':fmt(eff)+'%'}</div></div>`;
  });
  root.innerHTML=html||'<div class="empty">Dados insuficientes.</div>';
+}
+
+
+function dailyAdherenceScore(rec){
+ const g=db.goals||{};
+ const metrics=[
+  {key:'kcal',goal:+g.kcal||0,weight:0.30},
+  {key:'protein',goal:+g.protein||0,weight:0.25},
+  {key:'carbs',goal:+g.carbs||0,weight:0.12},
+  {key:'fat',goal:+g.fat||0,weight:0.12},
+  {key:'water',goal:+g.water||0,weight:0.11},
+  {key:'creatine',goal:+g.creatine||0,weight:0.10}
+ ];
+ let total=0,used=0;
+ metrics.forEach(m=>{
+   const v=+rec[m.key]||0;
+   if(!(m.goal>0&&v>0)) return;
+   let score;
+   if(m.key==='kcal'){
+     const ratio=v/m.goal;
+     score=Math.max(0,1-Math.abs(ratio-1)/0.5);
+   }else{
+     const ratio=v/m.goal;
+     score=ratio>=1?Math.max(0,1-(ratio-1)/1.0):Math.max(0,ratio);
+   }
+   total+=score*m.weight; used+=m.weight;
+ });
+ return used>0?Math.round(total/used*100):null;
+}
+function renderMonthlyAdherence(){
+ const root=$('monthlyAdherenceReport');if(!root)return;
+ const entries=Object.values(db.diary||{}).filter(r=>r&&r.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(!entries.length){root.innerHTML='<div class="empty">Sem registros nutricionais suficientes.</div>';return}
+ const groups={};entries.forEach(r=>{const m=r.date.slice(0,7);(groups[m]||(groups[m]=[])).push(r)});
+ const months=Object.keys(groups).sort();
+ const label=m=>{const [y,mo]=m.split('-').map(Number);return new Date(y,mo-1,1,12).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('.','')};
+ let html='';
+ months.forEach(m=>{
+   const scores=groups[m].map(dailyAdherenceScore).filter(v=>v!=null);
+   if(!scores.length)return;
+   const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
+   const cls=avg>=85?'good':avg>=70?'warn':'bad';
+   const high=scores.filter(v=>v>=85).length, low=scores.filter(v=>v<70).length;
+   html+=`<div class="adh-row"><b>${label(m)}</b><div class="adh-main"><b>${scores.length} dias avaliados</b>${high} dias ≥85% · ${low} dias <70%</div><div class="adh-score ${cls}">${fmt(avg)}%</div></div>`;
+ });
+ root.innerHTML=html||'<div class="empty">Não há meses com dados suficientes para calcular aderência.</div>';
 }
 
 function drawMulti(canvas,bodies){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1120';ctx.fillRect(0,0,w,h);const series=[{k:'waist',label:'Cintura'},{k:'bodyFat',label:'Gordura %'}].map(s=>({...s,pts:bodies.filter(x=>x[s.k]).map(x=>+x[s.k])})).filter(s=>s.pts.length);if(!series.length){ctx.fillStyle='#94a0ba';ctx.font='16px system-ui';ctx.fillText('Sem dados suficientes',30,45);return}const all=series.flatMap(s=>s.pts),min=Math.min(...all),max=Math.max(...all),pad=42;const X=i=>pad+(w-pad*2)*(bodies.length===1?.5:i/(bodies.length-1)),Y=v=>h-pad-(v-min)/(max-min||1)*(h-pad*2);const colors=['#7c9cff','#6ee7c8'];series.forEach((s,si)=>{ctx.strokeStyle=colors[si];ctx.lineWidth=4;ctx.beginPath();let started=false;bodies.forEach((b,i)=>{if(!b[s.k])return;started?ctx.lineTo(X(i),Y(+b[s.k])):(ctx.moveTo(X(i),Y(+b[s.k])),started=true)});ctx.stroke();ctx.fillStyle=colors[si];ctx.fillText(s.label,55+si*120,22)});}
